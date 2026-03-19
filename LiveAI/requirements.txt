@@ -1,0 +1,10 @@
+google-generativeai
+duckduckgo-search
+faster-whisper
+ctranslate2
+edge-tts
+faiss-cpu
+sentence-transformers
+sounddevice
+scipy
+numpy

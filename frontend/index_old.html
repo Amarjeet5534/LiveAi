@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveAI Assistant - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        /* Main Content */
+        .content {
+            display: flex;
+            flex-direction: row;
+            height: 600px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+                height: auto;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 25%;
+            border-right: 1px solid #eee;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+        }
+
+        .sidebar h3 {
+            color: #667eea;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            margin-top: 20px;
+        }
+
+        .sidebar button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+
+        .sidebar button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f9f9f9;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            max-width: 70%;
+            text-align: right;
+        }
+
+        .message.assistant {
+            background: #e3f2fd;
+            color: #333;
+            margin-right: auto;
+            max-width: 70%;
+        }
+
+        .message.error {
+            background: #ffebee;
+            color: #c62828;
+            margin-right: auto;
+            max-width: 70%;
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-area input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-area button {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .input-area button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .input-area button:active {
+            transform: translateY(0);
+        }
+
+        /* Buttons */
+        .btn-mic {
+            padding: 12px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-mic:hover {
+            background: #ff5252;
+            transform: scale(1.05);
+        }
+
+        .btn-mic.recording {
+            background: #ff3838;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 56, 56, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 56, 56, 0); }
+        }
+
+        /* Status */
+        .status {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .status.online {
+            color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .status.offline {
+            color: #f44336;
+            background: #ffebee;
+        }
+
+        /* Login Form */
+        .login-container {
+            max-width: 400px;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .login-container h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-login:hover {
+            background: #5568d3;
+        }
+
+        .toggle-mode {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .toggle-mode a {
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .toggle-mode a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div id="mainContainer"></div>
+
+    <script>
+        // ====================================
+        // STATE MANAGEMENT
+        // ====================================
+        const state = {
+            token: localStorage.getItem('token'),
+            userId: localStorage.getItem('userId'),
+            isLogin: true,
+            isRecording: false,
+            messages: []
+        };
+
+        const API_BASE = 'http://localhost:8000/api';
+
+        // ====================================
+        // MAIN APP
+        // ====================================
+        function renderApp() {
+            const container = document.getElementById('mainContainer');
+            
+            if (state.token) {
+                container.innerHTML = renderDashboard();
+                setupDashboard();
+            } else {
+                container.innerHTML = renderLogin();
+                setupLogin();
+            }
+        }
+
+        // ====================================
+        // LOGIN SCREEN
+        // ====================================
+        function renderLogin() {
+            return `
+                <div class="login-container">
+                    <h2>${state.isLogin ? '🔐 Login' : '📝 Register'}</h2>
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="username" placeholder="Enter username">
+                    </div>
+                    ${!state.isLogin ? `
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="email" placeholder="Enter email">
+                        </div>
+                    ` : ''}
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="password" placeholder="Enter password">
+                    </div>
+                    <button class="btn-login" onclick="handleAuth()">
+                        ${state.isLogin ? 'Login' : 'Register'}
+                    </button>
+                    <div class="toggle-mode">
+                        <span onclick="toggleAuthMode()">
+                            ${state.isLogin ? 'Need an account? Register' : 'Already have account? Login'}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleAuthMode() {
+            state.isLogin = !state.isLogin;
+            renderApp();
+        }
+
+        async function handleAuth() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            try {
+                const endpoint = state.isLogin ? '/auth/login' : '/auth/register';
+                let data = { username, password };
+                
+                if (!state.isLogin) {
+                    const email = document.getElementById('email').value;
+                    if (!email) {
+                        alert('Please enter email');
+                        return;
+                    }
+                    data.email = email;
+                }
+
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('userId', result.user_id);
+                    state.token = result.token;
+                    state.userId = result.user_id;
+                    renderApp();
+                } else {
+                    alert('Auth failed: ' + (result.detail || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        // ====================================
+        // DASHBOARD
+        // ====================================
+        function renderDashboard() {
+            return `
+                <div class="container">
+                    <div class="header">
+                        <h1>🤖 LiveAI Assistant</h1>
+                        <p>Your intelligent AI companion ready to help</p>
+                    </div>
+                    <div class="content">
+                        <div class="sidebar">
+                            <h3>Quick Commands</h3>
+                            <button onclick="sendCommand('open chrome')">🌐 Open Chrome</button>
+                            <button onclick="sendCommand('search weather')">🔍 Search Weather</button>
+                            <button onclick="sendCommand('click')">🖱️ Click</button>
+                            <button onclick="sendCommand('screenshot')">📸 Screenshot</button>
+                            
+                            <h3>History</h3>
+                            <div id="history"></div>
+                            
+                            <h3>Account</h3>
+                            <button onclick="logout()">🚪 Logout</button>
+                        </div>
+                        
+                        <div class="chat-area">
+                            <div class="status online">✅ Connected</div>
+                            <div class="chat-box" id="chatBox"></div>
+                            <div class="input-area">
+                                <input type="text" id="commandInput" placeholder="Type a command..." onkeypress="if(event.key==='Enter')sendMessage()">
+                                <button onclick="sendMessage()">Send</button>
+                                <button class="btn-mic" id="micBtn" onclick="toggleMicrophone()" title="Start voice input">🎤</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setupLogin() {
+            // Focus on username input field
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) {
+                usernameInput.focus();
+            }
+        }
+
+        function setupDashboard() {
+            loadHistory();
+            document.getElementById('commandInput').focus();
+        }
+
+        // ====================================
+        // MESSAGING
+        // ====================================
+        async function sendMessage() {
+            const input = document.getElementById('commandInput');
+            const command = input.value.trim();
+            
+            if (!command) return;
+
+            addMessage('user', command);
+            input.value = '';
+
+            try {
+                console.log('Sending command:', command);
+                console.log('Token:', state.token);
+                
+                const response = await fetch(`${API_BASE}/commands/execute?token=${state.token}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        command: command,
+                        voice: false
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('Full result:', JSON.stringify(result, null, 2));
+                console.log('result.success:', result.success, 'Type:', typeof result.success);
+
+                // Check if success is true (handle both boolean and string)
+                if (result.success === true || result.success === 'true') {
+                    const message = result.response || result.message || 'Command executed successfully';
+                    console.log('Adding assistant message:', message);
+                    addMessage('assistant', message);
+                } else {
+                    const error = result.response || result.message || result.detail || 'Unknown error';
+                    console.log('Adding error message:', error);
+                    addMessage('error', 'Failed: ' + error);
+                }
+            } catch (e) {
+                console.error('Caught error:', e);
+                addMessage('error', 'Error executing command: ' + e.message);
+            }
+        }
+
+        function sendCommand(command) {
+            document.getElementById('commandInput').value = command;
+            sendMessage();
+        }
+
+        function addMessage(type, text) {
+            const chatBox = document.getElementById('chatBox');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // ====================================
+        // VOICE INPUT
+        // ====================================
+        function toggleMicrophone() {
+            state.isRecording = !state.isRecording;
+            const btn = document.getElementById('micBtn');
+            
+            if (state.isRecording) {
+                btn.classList.add('recording');
+                startVoiceRecording();
+            } else {
+                btn.classList.remove('recording');
+                stopVoiceRecording();
+            }
+        }
+
+        function startVoiceRecording() {
+            // Browser-based speech recognition using Web Speech API
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                addMessage('error', 'Speech recognition not supported in your browser');
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                addMessage('assistant', '🎤 Listening...');
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                document.getElementById('commandInput').value = transcript;
+                sendMessage();
+            };
+
+            recognition.onerror = (event) => {
+                addMessage('error', 'Speech error: ' + event.error);
+            };
+
+            recognition.start();
+        }
+
+        function stopVoiceRecording() {
+            // Handled by recognition.onresult
+        }
+
+        // ====================================
+        // HISTORY
+        // ====================================
+        async function loadHistory() {
+            try {
+                const response = await fetch(`${API_BASE}/commands/history?limit=5&token=${state.token}`);
+                const result = await response.json();
+
+                const historyDiv = document.getElementById('history');
+                if (result.history && result.history.length > 0) {
+                    historyDiv.innerHTML = result.history.map(h => 
+                        `<button onclick="sendCommand('${h.command}')" title="${h.timestamp}">${h.command.substring(0, 15)}...</button>`
+                    ).join('');
+                }
+            } catch (e) {
+                console.error('Error loading history:', e);
+            }
+        }
+
+        // ====================================
+        // LOGOUT
+        // ====================================
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            state.token = null;
+            state.userId = null;
+            renderApp();
+        }
+
+        // ====================================
+        // INIT
+        // ====================================
+        renderApp();
+    </script>
+</body>
+</html>

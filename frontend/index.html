@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveAI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a3e 50%, #2d1b69 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            color: #fff;
+            overflow-y: auto;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding-top: 30px;
+            padding-bottom: 30px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 13px;
+            opacity: 0.6;
+        }
+
+        /* Circular Animation */
+        .circle-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid;
+            border-color: transparent transparent #667eea #764ba2;
+            animation: rotate 20s linear infinite;
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+            transform-origin: center center;
+        }
+
+        .circle:nth-child(2) {
+            width: 80%;
+            height: 80%;
+            border-color: #764ba2 transparent transparent #667eea;
+            animation: rotate 15s linear infinite reverse;
+            box-shadow: 0 0 20px rgba(118, 75, 162, 0.3);
+        }
+
+        .circle:nth-child(3) {
+            display: none;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .center-circle {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 45px;
+            box-shadow: 0 0 40px rgba(102, 126, 234, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+        }
+
+        .status-text {
+            position: absolute;
+            top: -65px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            padding: 5px 10px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .status-text.online {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: rgba(76, 175, 80, 0.5);
+            color: #4caf50;
+        }
+
+        /* Chat Box */
+        .chat-box {
+            width: 100%;
+            height: 280px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 20px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .message {
+            padding: 10px 14px;
+            border-radius: 15px;
+            word-wrap: break-word;
+            font-size: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            align-self: flex-end;
+            max-width: 80%;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .message.assistant {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            align-self: flex-start;
+            max-width: 80%;
+        }
+
+        .message.error {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.5);
+            color: #ff6b6b;
+            align-self: flex-start;
+        }
+
+        /* Input Section */
+        .input-section {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .input-section input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 13px;
+        }
+
+        .input-section input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .input-section input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .btn-send {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-send:active {
+            transform: translateY(0);
+        }
+
+        .btn-mic {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a3f 100%);
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-mic:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .btn-mic.recording {
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4); }
+            to { box-shadow: 0 4px 25px rgba(255, 107, 107, 0.8); }
+        }
+
+        /* Footer */
+        .footer {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .footer button {
+            flex: 1;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+
+        .footer button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Login Screen */
+        .login-screen {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-screen h2 {
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .toggle-mode {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+
+        .toggle-mode span {
+            cursor: pointer;
+            color: #667eea;
+            transition: all 0.3s;
+        }
+
+        .toggle-mode span:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        /* Scrollbar */
+        .chat-box::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-box::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .chat-box::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.4);
+            border-radius: 3px;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div id="mainContainer"></div>
+
+    <script>
+        // State Management
+        const state = {
+            token: localStorage.getItem('token'),
+            userId: localStorage.getItem('userId'),
+            isLogin: true,
+            isRecording: false,
+            messages: []
+        };
+
+        const API_BASE = 'http://localhost:8000/api';
+
+        // Render Logic
+        function renderApp() {
+            const container = document.getElementById('mainContainer');
+            
+            if (state.token) {
+                container.innerHTML = renderDashboard();
+                setupDashboard();
+            } else {
+                container.innerHTML = renderLogin();
+                setupLogin();
+            }
+        }
+
+        // Login Screen
+        function renderLogin() {
+            return `
+                <div class="login-screen">
+                    <h2>${state.isLogin ? '🔐 Login' : '📝 Register'}</h2>
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="username" placeholder="Enter username">
+                    </div>
+                    ${!state.isLogin ? `
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="email" placeholder="Enter email">
+                        </div>
+                    ` : ''}
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="password" placeholder="Enter password">
+                    </div>
+                    <button class="btn-login" onclick="handleAuth()">
+                        ${state.isLogin ? 'Login' : 'Register'}
+                    </button>
+                    <div class="toggle-mode">
+                        <span onclick="toggleAuthMode()">
+                            ${state.isLogin ? 'Need account? Register' : 'Have account? Login'}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleAuthMode() {
+            state.isLogin = !state.isLogin;
+            renderApp();
+        }
+
+        async function handleAuth() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            try {
+                const endpoint = state.isLogin ? '/auth/login' : '/auth/register';
+                let data = { username, password };
+                
+                if (!state.isLogin) {
+                    const email = document.getElementById('email').value;
+                    if (!email) {
+                        alert('Please enter email');
+                        return;
+                    }
+                    data.email = email;
+                }
+
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('userId', result.user_id);
+                    state.token = result.token;
+                    state.userId = result.user_id;
+                    renderApp();
+                } else {
+                    alert('Auth failed: ' + (result.detail || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        // Dashboard Screen
+        function renderDashboard() {
+            return `
+                <div class="container">
+                    <div class="header">
+                        <h1>LiveAI</h1>
+                        <p>Your intelligent AI companion</p>
+                    </div>
+
+                    <div class="circle-container">
+                        <div class="circle"></div>
+                        <div class="circle"></div>
+                        <div class="circle"></div>
+                        <div class="center-circle">🤖</div>
+                        <div class="status-text online">✓ Connected</div>
+                    </div>
+
+                    <div class="chat-box" id="chatBox"></div>
+
+                    <div class="input-section">
+                        <input type="text" id="commandInput" placeholder="Say something..." onkeypress="if(event.key==='Enter')sendMessage()">
+                        <button class="btn-send" onclick="sendMessage()">Send</button>
+                        <button class="btn-mic" id="micBtn" onclick="toggleMicrophone()" title="Voice">🎤</button>
+                    </div>
+
+                    <div class="footer">
+                        <button onclick="logout()">🚪 Logout</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setupLogin() {
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) {
+                usernameInput.focus();
+            }
+        }
+
+        function setupDashboard() {
+            loadHistory();
+            const input = document.getElementById('commandInput');
+            if (input) {
+                input.focus();
+            }
+        }
+
+        // Send Message
+        async function sendMessage() {
+            const input = document.getElementById('commandInput');
+            const command = input.value.trim();
+            
+            if (!command) return;
+
+            // STOP any ongoing speech before sending new command
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                console.log('🔇 Stopped previous speech');
+            }
+
+            addMessage('user', command);
+            input.value = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/commands/execute?token=${state.token}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        command: command,
+                        voice: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error ${response.status}`);
+                }
+                
+                const result = await response.json();
+
+                if (result.success === true || result.success == 'true') {
+                    const message = result.response || result.message || 'Command executed successfully';
+                    addMessage('assistant', message);
+                    // Speak the response
+                    speakResponse(message);
+                } else {
+                    const errorMsg = result.response || result.message || result.detail || 'Unknown error';
+                    addMessage('error', 'Failed: ' + errorMsg);
+                }
+            } catch (e) {
+                addMessage('error', 'Error: ' + e.message);
+            }
+        }
+
+        function addMessage(type, text) {
+            const chatBox = document.getElementById('chatBox');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Text-to-Speech
+        function speakResponse(text) {
+            if (!window.speechSynthesis) {
+                console.warn('Speech synthesis not supported');
+                return;
+            }
+
+            // Cancel any ongoing speech
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+
+            utterance.onstart = () => {
+                console.log('🔊 Starting to speak:', text);
+            };
+
+            utterance.onend = () => {
+                console.log('🔊 Finished speaking');
+            };
+
+            utterance.onerror = (event) => {
+                console.error('🔊 Speech error:', event.error);
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Voice Input
+        function toggleMicrophone() {
+            state.isRecording = !state.isRecording;
+            const btn = document.getElementById('micBtn');
+            
+            if (state.isRecording) {
+                btn.classList.add('recording');
+                startVoiceRecording();
+            } else {
+                btn.classList.remove('recording');
+            }
+        }
+
+        function startVoiceRecording() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                addMessage('error', 'Speech recognition not supported');
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.language = 'en-US';
+
+            recognition.onstart = () => {
+                addMessage('assistant', 'Listening...');
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                document.getElementById('commandInput').value = transcript;
+                state.isRecording = false;
+                sendMessage();
+            };
+
+            recognition.onerror = (event) => {
+                addMessage('error', 'Voice input error: ' + event.error);
+                state.isRecording = false;
+            };
+
+            recognition.start();
+        }
+
+        // History
+        async function loadHistory() {
+            try {
+                const response = await fetch(`${API_BASE}/commands/history?token=${state.token}&limit=5`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const history = data.history || [];
+                    history.forEach(cmd => {
+                        addMessage('user', cmd.command);
+                        if (cmd.response) {
+                            addMessage('assistant', cmd.response);
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error loading history:', e);
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            state.token = null;
+            state.userId = null;
+            renderApp();
+        }
+
+        // Initialize
+        renderApp();
+    </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+# Main dependencies
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
+python-dotenv==1.0.0
+
+# Database
+sqlite3-python==1.0.0
+sqlalchemy==2.0.23
+
+# LLM & Voice
+ollama==0.1.26
+faster-whisper==1.0.2
+edge-tts==6.1.12
+ctranslate2==3.24.1
+sentence-transformers==2.2.2
+faiss-cpu==1.7.4
+
+# Audio
+sounddevice==0.4.6
+scipy==1.11.4
+numpy==1.26.2
+pygame==2.5.2
+
+# Web & API
+aiohttp==3.9.1
+requests==2.31.0
+
+# Screen capture & Automation
+mss==9.0.1
+pillow==10.1.0
+pyautogui==0.9.54
+
+# Security & Auth
+passlib==1.7.4
+python-multipart==0.0.6
+cryptography==41.0.7
+
+# Database (optional upgrades)
+# psycopg2-binary==2.9.9  # PostgreSQL
+# asyncpg==0.29.0  # Async PostgreSQL
+
+# Optional: ML/Vision
+# transformers==4.35.2
+# torch==2.0.0
+
+# Development
+pytest==7.4.3
+black==23.12.0
+flake8==6.1.0

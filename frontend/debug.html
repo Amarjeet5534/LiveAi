@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug API Response</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #0f0;
+            padding: 20px;
+        }
+        pre {
+            background: #0a0a0a;
+            padding: 10px;
+            border: 1px solid #0f0;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        button {
+            padding: 10px 20px;
+            background: #0f0;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Debug Console</h1>
+    <button onclick="testAPI()">Test Command API</button>
+    <button onclick="testToken()">Verify Token</button>
+    <div id="output"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        const TOKEN = '54wfwXLc81PepAXWhk2Q6EWXwrwEdkxdVBQ2XjrSJP0';
+
+        function log(text) {
+            const output = document.getElementById('output');
+            output.innerHTML += text + '\n';
+        }
+
+        async function testAPI() {
+            document.getElementById('output').innerHTML = '';
+            log('=== Testing API ===\n');
+
+            try {
+                log('Sending request to: ' + API_BASE + '/commands/execute?token=' + TOKEN);
+                
+                const response = await fetch(`${API_BASE}/commands/execute?token=${TOKEN}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        command: 'hello',
+                        voice: false
+                    })
+                });
+
+                log('Status: ' + response.status);
+                log('Ok: ' + response.ok);
+                
+                const result = await response.json();
+                
+                log('\nRaw Response:');
+                log(JSON.stringify(result, null, 2));
+                
+                log('\nParsed Values:');
+                log('result.success = ' + result.success);
+                log('typeof result.success = ' + typeof result.success);
+                log('result.success === true? ' + (result.success === true));
+                log('result.response = ' + result.response);
+                
+                if (result.success === true) {
+                    log('\n✓ SUCCESS BRANCH WOULD EXECUTE');
+                } else {
+                    log('\n✗ ERROR BRANCH WOULD EXECUTE');
+                }
+            } catch (e) {
+                log('ERROR: ' + e.message);
+            }
+        }
+
+        async function testToken() {
+            document.getElementById('output').innerHTML = '';
+            log('=== Verifying Token ===\n');
+
+            try {
+                const response = await fetch(`${API_BASE}/commands/history?token=${TOKEN}`);
+                log('Status: ' + response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('\n✓ Token is VALID');
+                    log('Response: ' + JSON.stringify(data, null, 2));
+                } else {
+                    log('\n✗ Token is INVALID or EXPIRED');
+                }
+            } catch (e) {
+                log('ERROR: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
